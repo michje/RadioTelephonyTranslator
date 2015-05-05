@@ -1,22 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Speech.Synthesis;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-
 
 namespace TelephonyFun
 {
     public partial class frmRadioTelephony : Form
     {
-        private TelephonyTranslator _telephonyTranslator = new TelephonyTranslator();
+        private readonly TelephonyTranslator _telephonyTranslator = new TelephonyTranslator();
         private bool _firstEnter = true;
+
         public frmRadioTelephony()
         {
             InitializeComponent();
@@ -24,21 +20,17 @@ namespace TelephonyFun
 
         private void btnTranslate_Click(object sender, EventArgs e)
         {
-            TranslatePnr();
+            VisualizeTranslation(GetTranslation());
         }
 
-        private void TranslatePnr()
+        private void btnSpeech_Click(object sender, EventArgs e)
         {
-            if (_firstEnter) return;
+            SpeakTranslation(GetTranslation());
+        }
 
-            var pnr = txtPnr.Text;
-
-            if (string.IsNullOrEmpty(pnr))
-            {
-                txtTranslation.ResetText();
-            }
-
-            var result = _telephonyTranslator.Translate(pnr);
+        private void VisualizeTranslation(IList<TelephoneTranslation> result)
+        {
+            if (result == null || !result.Any()) return;
 
             var sb = new StringBuilder();
             foreach (var telephoneTranslation in result)
@@ -49,13 +41,22 @@ namespace TelephonyFun
             txtTranslation.Text = sb.ToString();
         }
 
-        private void btnSpeech_Click(object sender, EventArgs e)
+        private IList<TelephoneTranslation> GetTranslation()
         {
-            TranslatePnr();
+            if (_firstEnter) return null;
 
-            if (_firstEnter) return;
             var pnr = txtPnr.Text;
-            var result = _telephonyTranslator.Translate(pnr);
+
+            if (string.IsNullOrEmpty(pnr))
+            {
+                txtTranslation.ResetText();
+            }
+
+            return _telephonyTranslator.Translate(pnr);
+        }
+
+        private void SpeakTranslation(IList<TelephoneTranslation> result)
+        {
             var sb = new StringBuilder();
 
             foreach (var telephoneTranslation in result)
